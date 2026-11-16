@@ -42,6 +42,8 @@ Object.assign(ES,{"Please record a shorter video (up to 300 MB).": "Graba un vid
 Object.assign(ES,{"Video (up to 4 minutes)":"Video (hasta 4 minutos)"});
 Object.assign(ES,{"Late schedule = a soft note":"Horario tarde = un aviso suave","When today's schedule is put in after 8 AM, workers still get a notification, but a soft one: '📋 Hoy – ya está en la app' with the job and 'Tu trabajo de hoy, para el registro – no tienes que ir ahora' (today's job, for the record – you don't need to go now). No 'new job' or 'you drive' alerts. Before 8 AM, and for tomorrow or later, it works as before.":"Cuando el horario de hoy se pone después de las 8 AM, los trabajadores igual reciben un aviso, pero suave: '📋 Hoy – ya está en la app' con el trabajo y 'Tu trabajo de hoy, para el registro – no tienes que ir ahora'. Sin avisos de 'trabajo nuevo' ni 'tú manejas'. Antes de las 8 AM, y para mañana o después, funciona como antes."});
 Object.assign(ES,{"Search a name, job or address": "Busca un nombre, trabajo o dirección", "Search finds every task – by address too": "Buscar encuentra cada tarea – también por dirección", "In Messages and in Forward, typing an address (like '330'), a job name or a person now finds every task – even a task with no messages yet – so you can forward a video straight into it. Tasks come first (open ones on top), then chats with people.": "En Mensajes y en Reenviar, escribir una dirección (como '330'), un trabajo o una persona ahora encuentra cada tarea – aunque todavía no tenga mensajes – para reenviar un video directo a ella. Las tareas salen primero (las abiertas arriba), y después los chats con personas."});
+Object.assign(ES,{"Adding someone to a task brings the whole chat":"Agregar a alguien a una tarea trae todo el chat","When you add someone to a task (or hand it over to someone else), they now get the whole chat with it – every note, photo, video and voice note so far – not an empty chat.":"Cuando agregas a alguien a una tarea (o se la pasas a otra persona), ahora recibe todo el chat – cada nota, foto, video y nota de voz – no un chat vacío."});
+Object.assign(ES,{"Showing page 1 – open the PDF to see all of it": "Mostrando la página 1 – abre el PDF para verlo todo", "Couldn't show the preview – tap to open the PDF": "No se pudo mostrar la vista previa – toca para abrir el PDF", "Couldn't show the PDF here.": "No se pudo mostrar el PDF aquí.", "Open it in another app": "Ábrelo en otra app", "Estimate PDFs always show": "Los PDF de presupuestos siempre se ven", "The PDF viewer now lives inside the app (no waiting on outside websites), and every step has a time limit with a second try. If your phone still can't draw the PDF, the app shows a picture of the estimate made by Google Drive instead – it never sits on 'Loading the estimate…'. 'Open it in another app' is always there too.": "El visor de PDF ahora está dentro de la app, y cada paso tiene un límite de tiempo con un segundo intento. Si el teléfono aún no puede mostrar el PDF, la app muestra una imagen del presupuesto hecha por Google Drive – nunca se queda en 'Cargando…'. 'Ábrelo en otra app' siempre está también."});
 Object.assign(ES,{"Overtime from": "Horas extra desde las", "Confirm overtime": "Confirmar horas extra", "hour": "hora", "hours": "horas", "extra": "extra", "No overtime": "Sin horas extra", "Hours worked after the normal work day.": "Horas trabajadas después del horario normal.", "This removes the": "Esto quita las", "you sent before.": "que mandaste antes.", "The office checks overtime before payroll.": "La oficina revisa las horas extra antes de la nómina.", "Yes, I confirm": "Sí, confirmo", "Yes, confirm": "Sí, confirmo", "Change": "Cambiar"});
 Object.assign(ES,{"The reminders are switched off right now.":"Los recordatorios están apagados ahora."});
 Object.assign(ES,{"the holiday":"el día festivo"});
@@ -193,17 +195,22 @@ setTimeout(useStart,1500);
 var SESS=0;
 function call(action,payload,as){var ep=SESS;return callRaw(action,payload,as).then(function(v){if(ep!==SESS)return new Promise(function(){});return v;},function(e){if(ep!==SESS)return new Promise(function(){});throw e;});}
 /* A brand-new task has a temporary id ('tmp…') until the server answers. Anything sent on it (video, photo, voice, message) waits for the real id. */
-var TMPMAP={};
+var TMPMAP={};try{TMPMAP=JSON.parse(localStorage.getItem('sam_tmpmap')||'{}')||{};}catch(e){}
+function isTmpId(id){return /^tmp\d/.test(String(id||''))||/^q[\w-]+_\d+$/.test(String(id||''));}
+/* a brand-new task got its real id: remember it, move its 'sending…' bubbles, and let an open chat follow it */
+function tmpSet(from,to){if(!from||!to||from===to)return;TMPMAP[from]=to;try{var ks=Object.keys(TMPMAP);if(ks.length>200)ks.slice(0,ks.length-200).forEach(function(k){delete TMPMAP[k];});localStorage.setItem('sam_tmpmap',JSON.stringify(TMPMAP));}catch(e){}
+  if(PEND[from]){PEND[to]=(PEND[to]||[]).concat(PEND[from]);delete PEND[from];}if(S.chatId===from)S.chatId=to;}
+function tmpReal(id){var n=0;while(TMPMAP[id]&&n++<5)id=TMPMAP[id];return id;}
 // Tap the red "Offline" label → try again right away (load the list + send anything waiting). Also re-check by itself when the phone gets signal back.
 function syncTap(){if(!S.offline)return;if(syncTap.busy)return;syncTap.busy=1;setTimeout(function(){syncTap.busy=0;},3000);toast('🔄 '+T('Checking the signal…'));try{flushQ();}catch(e){}try{vnFlush();}catch(e){}try{mqFlush();}catch(e){}refresh(true);}
 window.addEventListener('online',function(){setTimeout(function(){if(S.offline)refresh(true);},1500);});
 /* last resort: a video/file that could not be sent is downloaded to the phone, so it is never lost */
 function saveToPhone(f){try{var u=URL.createObjectURL(f),l=document.createElement('a');l.href=u;l.download=f.name||('SAM video '+today()+'.mp4');document.body.appendChild(l);l.click();setTimeout(function(){l.remove();URL.revokeObjectURL(u);},60000);return true;}catch(e){return false;}}
-function realId(id){id=String(id||'');if(id.indexOf('tmp')!==0)return Promise.resolve(id);
-  return new Promise(function(ok,no){var n=0;(function look(){if(TMPMAP[id])return ok(TMPMAP[id]);if(++n>120)return no(new Error('NO_SIGNAL'));setTimeout(look,500);})();});}
+function realId(id){id=String(id||'');if(!isTmpId(id))return Promise.resolve(id);
+  return new Promise(function(ok,no){var n=0;(function look(){var r=tmpReal(id);if(!isTmpId(r))return ok(r);if(++n>(Q.length?20:120))return no(new Error('WAIT_ID'));setTimeout(look,500);})();});}
 function callRaw(action,payload,as){
   payload=payload||{};
-  if(payload.id&&String(payload.id).indexOf('tmp')===0&&action!=='list')return realId(payload.id).then(function(rid2){var p2=Object.assign({},payload,{id:rid2});return callRaw(action,p2,as);});
+  if(payload.id&&isTmpId(payload.id)&&action!=='list')return realId(payload.id).then(function(rid2){var p2=Object.assign({},payload,{id:rid2});return callRaw(action,p2,as);});
   if(S.viewAs){if(!READS[action]&&action!=='chatSeen')return Promise.reject(new Error('VIEW_ONLY'));if(action==='chatSeen')return Promise.resolve({});payload.by='Yossi';payload.pin=S.pin;if(action==='list')payload.viewAs=S.viewAs;}
   else{payload.by=as||S.me;payload.pin=payload.pin||S.pin;}if(!READS[action]&&!payload.rid)payload.rid=rid();payload.dv=DEV_ID;if(action==='list'&&!S.viewAs)payload.lang=LANG==='es'?'es':'en'; // titles in the worker's language right from log-in
   if(action==='list'&&!S.viewAs&&S.me&&!as&&payload.by===S.me){try{payload.use=useNow();}catch(e){}payload.lang=LANG==='es'?'es':'en';}
@@ -231,9 +238,10 @@ function flushQ(){
   var old=Q.filter(function(q){return Date.now()-(q.at||0)<14*86400000;});if(old.length!==Q.length){Q=old;qSave();} // older than 2 weeks: too late to matter
   var it=Q.filter(function(q){return q.me===S.me;})[0];if(!it)return; // other people's waiting saves wait for them
   var qDrop=function(){var i=Q.indexOf(it);if(i>=0)Q.splice(i,1);qSave();};
-  qBusy=true;it.p.pin=S.pin;
-  call(it.a,it.p).then(function(d){qDrop();qBusy=false;if(/^snow/.test(it.a)){snowApply(d);if(!myQ().length){render();return;}render();flushQ();return;}if(!myQ().length){apply(d);render();if(it.msg)toast(it.msg);else if(Date.now()-it.at>8000)toast('✓ '+T('Everything was sent'));} /* sent right away: keep the screen's own message (e.g. Report sent) */else{if(it.msg)toast(it.msg);render();flushQ();}})
-  .catch(function(e){qBusy=false;if(isNet(e)||/Service|Lock timeout|timed out|LOCKED|temporarily|busy/i.test(String(e&&e.message||e))){render();return;}if(isBadPin(e)){signOut('');return;}qDrop();
+  qBusy=true;it.p.pin=S.pin;var befQ=null;if(it.a==='add'){befQ={};allT().forEach(function(t){if(!isTmpId(t.id))befQ[t.id]=1;});}
+  call(it.a,it.p).then(function(d){qDrop();qBusy=false;if(befQ&&d&&d.tasks)(it.p.owners||[]).forEach(function(o,i){var r=d.tasks.filter(function(t){return !befQ[t.id]&&t.owner===o&&t.title===it.p.title&&t.createdBy===S.me;}).pop();if(r)tmpSet('q'+it.p.rid+'_'+i,r.id);});if(/^snow/.test(it.a)){snowApply(d);if(!myQ().length){render();return;}render();flushQ();return;}if(!myQ().length){apply(d);render();if(it.msg)toast(it.msg);else if(Date.now()-it.at>8000)toast('✓ '+T('Everything was sent'));} /* sent right away: keep the screen's own message (e.g. Report sent) */else{if(it.msg)toast(it.msg);render();flushQ();}})
+  .catch(function(e){qBusy=false;if(String(e&&e.message)==='WAIT_ID'){var wi=Q.indexOf(it);if(wi>=0){Q.splice(wi,1);Q.push(it);qSave();}setTimeout(flushQ,3000);return;} /* its task isn't saved yet: let the rest go first */
+    if(isNet(e)||/Service|Lock timeout|timed out|LOCKED|temporarily|busy/i.test(String(e&&e.message||e))){render();return;}if(isBadPin(e)){signOut('');return;}qDrop();
     if(it.a==='scheduleSave'&&String(e&&e.message)==='STALE'){var sp=it.p;refresh(true);setTimeout(function(){var who=((S.sched||{})[sp.date]||{})._by;toast('⚠️ '+(who&&who!==S.me?who:T('Someone else'))+' '+T('just changed this day. Your changes are kept here – check and send again.'));openSchedule(sp.date,{crews:sp.crews,off:sp.off});},1800);render();flushQ();return;}
     toast('❗ '+T('Not sent')+': '+errText(e));render();flushQ();});
 }
@@ -283,10 +291,10 @@ function apply(d){
 }
 // Photos / videos / voice notes show in the chat the moment you send them; they upload in the background.
 var PEND={},UPP={};
-function pendAdd(taskId,m){(PEND[taskId]=PEND[taskId]||[]).push(m);mergePend();chatRepaint();}
+function pendAdd(taskId,m){taskId=tmpReal(taskId);(PEND[taskId]=PEND[taskId]||[]).push(m);mergePend();chatRepaint();}
 // an upload finished as real message nid: the other copies still sending must not count it as theirs
-function pendClaim(taskId,nid){if(nid)(PEND[taskId]||[]).forEach(function(q){if(q._known&&q._known.indexOf(nid)<0)q._known.push(nid);});}
-function pendDone(taskId,mid){PEND[taskId]=(PEND[taskId]||[]).filter(function(m){return m.id!==mid;});if(!PEND[taskId].length)delete PEND[taskId];delete UPP[mid];
+function pendClaim(taskId,nid){taskId=tmpReal(taskId);if(nid)(PEND[taskId]||[]).forEach(function(q){if(q._known&&q._known.indexOf(nid)<0)q._known.push(nid);});}
+function pendDone(taskId,mid){taskId=tmpReal(taskId);PEND[taskId]=(PEND[taskId]||[]).filter(function(m){return m.id!==mid;});if(!PEND[taskId].length)delete PEND[taskId];delete UPP[mid];
   // take the 'sending' copy out right away, so the real one never shows twice
   allT().forEach(function(t){if(t.id!==taskId)return;var l=parseComments(t),n=l.filter(function(m){return m.id!==mid;});if(n.length!==l.length)t.comments=JSON.stringify(n);});}
 function pendKind(m){return m.voice?'voice':m.video?'video':m.photo?'photo':'file';}
@@ -316,8 +324,8 @@ function upDone(mid){return new Promise(function(res){if(!(mid in UPP)){res();re
     document.querySelectorAll('[data-mid="'+mid+'"] .upp').forEach(function(n){n.textContent='✓ '+T('Sent');});setTimeout(res,450);}},40);setTimeout(function(){clearInterval(w);res();},3000);});}
 function upRing(mid){var s=UPS[mid]||0;return el('div',{class:'upring',html:'<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="uprb"/><circle cx="22" cy="22" r="18" class="uprc" style="stroke-dashoffset:'+(113.1*(1-s/100))+'"/></svg><b>'+Math.floor(s)+'%</b>'});}
 // newest message of mine with this kind that we did not have before (to keep the local copy for instant play)
-function newMine(taskId,kind,known){var t=allT().filter(function(q){return q.id===taskId;})[0];if(!t)return null;var l=parseComments(t).filter(function(m){return m.by===S.me&&m[kind]&&known.indexOf(m[kind])<0;});return l.length?l[l.length-1][kind]:null;}
-function knownOf(taskId,kind){var t=allT().filter(function(q){return q.id===taskId;})[0];return t?parseComments(t).map(function(m){return m[kind];}).filter(Boolean):[];}
+function newMine(taskId,kind,known){taskId=tmpReal(taskId);var t=allT().filter(function(q){return q.id===taskId;})[0];if(!t)return null;var l=parseComments(t).filter(function(m){return m.by===S.me&&m[kind]&&known.indexOf(m[kind])<0;});return l.length?l[l.length-1][kind]:null;}
+function knownOf(taskId,kind){taskId=tmpReal(taskId);var t=allT().filter(function(q){return q.id===taskId;})[0];return t?parseComments(t).map(function(m){return m[kind];}).filter(Boolean):[];}
 function isDm(x){return String(x&&x.group||'').indexOf('dm:')===0;}
 function isSelfDm(x){var p=String(x&&x.group||'').slice(3).split('|');return isDm(x)&&p[0]===p[1];}
 function isGroup(x){return isDm(x)&&x.note==='group';}
@@ -1068,6 +1076,8 @@ var WHATS_NEW=[
  {id:'nowork2',i:'📋',t:"'No work today?' fixes",d:"On a past day it asks 'No work this day?'. Going back to the report keeps your marks protected. The middle button now says 'No – send it as marked (nobody came)'. A report where everyone is ✗ shows '— No work' in the leader's week too, and the notification says 'Nobody came – looks like no work today'. Pop-up messages no longer block buttons under them.",go:function(){openReports();}},
  {id:'twophones',i:'🔔',t:"Two phones of one person both get notifications",d:"Two iPhones (or two Samsungs of the same model) of one person – or the main app and the test app on the same phone – were mixed up, and one silently stopped getting notifications. Each app on each phone now has its own id, so both keep working (each app signs up once more by itself).",go:function(){openMaint();}},
  {id:'noworksched',i:'🗓',t:"No 'schedule isn't in' on a no-work day",d:"When a weekday is marked as no work, Rocky and you no longer get 'Today's schedule isn't in the app yet'. The 5 PM summary shows '– no work' for a crew that didn't work.",go:function(){goView('home');}},
+ {id:'pdfsafe',i:'📄',t:"Estimate PDFs always show",d:"The PDF viewer now lives inside the app (no waiting on outside websites), and every step has a time limit with a second try. If your phone still can't draw the PDF, the app shows a picture of the estimate made by Google Drive instead – it never sits on 'Loading the estimate…'. 'Open it in another app' is always there too.",go:function(){openEst();}},
+ {id:'sharechat',i:'👥',t:"Adding someone to a task brings the whole chat",d:"When you add someone to a task (or hand it over to someone else), they now get the whole chat with it – every note, photo, video and voice note so far – not an empty chat.",go:function(){goView('tasks');}},
  {id:'srchaddr',i:'🔎',t:"Search finds every task – by address too",d:"In Messages and in Forward, typing an address (like '330'), a job name or a person now finds every task – even a task with no messages yet – so you can forward a video straight into it. Tasks come first (open ones on top), then chats with people.",go:function(){goView('chats');}},
  {id:'schedsoft',i:'📋',t:"Late schedule = a soft note",d:"When today's schedule is put in after 8 AM, workers still get a notification, but a soft one: '📋 Hoy – ya está en la app' with the job and 'Tu trabajo de hoy, para el registro – no tienes que ir ahora' (today's job, for the record – you don't need to go now). No 'new job' or 'you drive' alerts. Before 8 AM, and for tomorrow or later, it works as before.",go:function(){goView('home');}},
  {id:'vid300',i:'🎥',t:"Longer videos: up to 4 minutes",d:"Videos can now be up to 4 minutes / 300 MB (before: about 1¾ minutes / 80 MB – your 88 MB video was refused). The app's camera stops by itself at 4 minutes. A video that is still too big is never thrown away – it is saved to your phone's Downloads.",go:function(){goView('chats');}},
@@ -1480,7 +1490,7 @@ function openPinChange(){
 }
 // ---------- Notifications open the right screen ----------
 // Auto-update: when the app comes back on screen, check if a newer version is out and reload into it (never while something is open).
-var BUILD='202611161914',lastUpd=0;
+var BUILD='202611162049',lastUpd=0;
 function checkUpdate(force){if(!force&&Date.now()-lastUpd<120000)return;lastUpd=Date.now();
   fetch('version.json?x='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
     if(!v||!v.v||v.v===BUILD)return;
@@ -2752,7 +2762,7 @@ function openChat(id){
   list.addEventListener('scroll',function(){downUpd();},{passive:true});
   var input=el('textarea',{class:'chatin',rows:'1',placeholder:T(window.innerWidth<380?'Message…':'Write a message…'),maxlength:'500'});
   input.addEventListener('input',function(){input.style.height='auto';input.style.height=Math.min(120,input.scrollHeight)+'px';if(input.value.trim()){var was=Date.now()-(S.typAt||0)>4500;S.typAt=Date.now();if(was)liveTick();}else S.typAt=0;});
-  function cur(){return allT().filter(function(t){return t.id===id;})[0]||(S.archHits||[]).filter(function(t){return t.id===id;})[0]||x;}
+  function cur(){if(isTmpId(id)&&!isTmpId(tmpReal(id))){id=tmpReal(id);S.chatId=id;}return allT().filter(function(t){return t.id===id;})[0]||(S.archHits||[]).filter(function(t){return t.id===id;})[0]||x;}
   function paintHead(){paintHead0();try{liveShow();}catch(e){}} // keep "typing…" when the header is redrawn
   // 📞 call / 💬 WhatsApp the person this chat is with – top right of every chat
   function phoneOf(k){var o=(S.office||[]).filter(function(z){return z.name===k;})[0];if(o)return o.phone;var c=(S.crew||[]).filter(function(z){return z.id===k;})[0];return c?c.phone:'';}
@@ -3762,9 +3772,9 @@ function save(action,payload,after){SAVE_GEN++;var tmps=[];
   var before=action==='add'?{}:null;if(before)allT().forEach(function(t){before[t.id]=1;});
   call(action,payload).then(function(d){S.saving--;
     /* the new task got its real id: remember it, so a chat opened on the brand-new task (tmp id) sends to the right place */
-    if(before&&d&&d.tasks){tmps.forEach(function(tp){var r=d.tasks.filter(function(t){return !before[t.id]&&t.owner===tp.owner&&t.title===payload.title&&t.createdBy===S.me;}).pop();if(r)TMPMAP[tp.id]=r.id;});}
+    if(before&&d&&d.tasks){tmps.forEach(function(tp){var r=d.tasks.filter(function(t){return !before[t.id]&&t.owner===tp.owner&&t.title===payload.title&&t.createdBy===S.me;}).pop();if(r)tmpSet(tp.id,r.id);});}
     if(!S.saving)apply(d);render();if(after)after(d);})
-  .catch(function(e){S.saving--;if(isBadPin(e)){signOut(T('Wrong PIN. Try again.'));return;}if(isNet(e)&&QABLE[action]){if(action==='add')S.tasks=S.tasks.filter(function(x){return String(x.id).indexOf('tmp')!==0;});enqueue(action,payload);if(after)toast('❗ '+T('No signal: the task will be saved, but the attachments were not sent. Add them in the chat later.'));return;}toast('❗ '+T('Not saved')+': '+errText(e));refresh(true);});
+  .catch(function(e){S.saving--;if(isBadPin(e)){signOut(T('Wrong PIN. Try again.'));return;}if(isNet(e)&&QABLE[action]){if(action==='add')S.tasks=S.tasks.filter(function(x){return String(x.id).indexOf('tmp')!==0;});enqueue(action,payload);if(action==='add')tmps.forEach(function(tp,i){tmpSet(tp.id,'q'+payload.rid+'_'+i);});if(after)toast('❗ '+T('No signal: the task will be saved, but the attachments were not sent. Add them in the chat later.'));return;}toast('❗ '+T('Not saved')+': '+errText(e));refresh(true);});
 }
 
 function refresh(force){
@@ -4827,19 +4837,58 @@ function estApply(r){if(r&&r.est){S.est=r.est;try{localStorage.setItem('sam_est'
 // the newest PDFs are fetched quietly in the background, so they open right away when tapped
 // PDFs are shown inside the app (no waiting for another app to open them)
 var PDFJS=null,PDFPREV={};
-function loadPdfJs(){if(PDFJS)return PDFJS;PDFJS=new Promise(function(ok,no){if(window.pdfjsLib)return ok(window.pdfjsLib);var sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/legacy/build/pdf.min.js';
-  sc.onload=function(){try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/legacy/build/pdf.worker.min.js';ok(pdfjsLib);}catch(e){no(e);}};sc.onerror=function(){PDFJS=null;no(new Error('NO_SIGNAL'));};document.head.appendChild(sc);});return PDFJS;}
-function pdfDoc(id){return Promise.all([loadPdfJs(),getMedia(id,null,'application/pdf').then(function(u){return fetch(u).then(function(r){return r.arrayBuffer();});})]).then(function(a){return a[0].getDocument({data:new Uint8Array(a[1])}).promise;});}
+var PDFSRC=['pdf.min.js','https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/legacy/build/pdf.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js'],PDFSRC_I=0;
+/* pdf.js: our own copy first (kept on the phone), then two outside copies – each gets 20 s */
+function loadPdfJs(){if(PDFJS)return PDFJS;PDFJS=new Promise(function(ok,no){if(window.pdfjsLib&&window.pdfjsLib.getDocument)return ok(window.pdfjsLib);
+  (function tryOne(){if(PDFSRC_I>=PDFSRC.length){PDFSRC_I=0;PDFJS=null;return no(new Error('NO_SIGNAL'));}
+    var src=PDFSRC[PDFSRC_I],done=false,sc=document.createElement('script');sc.src=src;
+    function next(){if(done)return;done=true;try{sc.remove();}catch(e){}PDFSRC_I++;tryOne();}
+    var tm=setTimeout(next,20000);
+    sc.onload=function(){if(done)return;clearTimeout(tm);try{if(!window.pdfjsLib||!pdfjsLib.getDocument)return next();done=true;pdfjsLib.GlobalWorkerOptions.workerSrc=src.replace('pdf.min.js','pdf.worker.min.js');ok(pdfjsLib);}catch(e){next();}};
+    sc.onerror=function(){clearTimeout(tm);next();};document.head.appendChild(sc);})();});return PDFJS;}
+/* PDF: every step is timed – if one hangs we say which one (Errors log) and offer to open it in another app */
+var PDFSTAGE={};
+function pdfTimeout(p,ms,what){return Promise.race([p,new Promise(function(_,no){setTimeout(function(){no(new Error('PDF_SLOW '+what));},ms);})]);}
+function pdfDoc1(id){PDFSTAGE[id]=(PDFSTAGE[id]?PDFSTAGE[id]+' | ':'')+'start';
+  var lib=pdfTimeout(loadPdfJs(),45000,'library').then(function(x){PDFSTAGE[id]+=' lib-ok('+PDFSRC_I+')';return x;});
+  var file=pdfTimeout(getMedia(id,null,'application/pdf'),60000,'download').then(function(u){PDFSTAGE[id]+=' file-ok';return pdfTimeout(fetch(u).then(function(r){return r.arrayBuffer();}),15000,'file');});
+  return Promise.all([lib,file]).then(function(a){PDFSTAGE[id]+=' parse '+a[1].byteLength;return pdfTimeout(a[0].getDocument({data:new Uint8Array(a[1]),isEvalSupported:false}).promise,25000,'read');});}
+/* if the first try fails: forget the saved copy of the file, use the next pdf.js copy, and try once more */
+function pdfDoc(id){if(PDFDOCP[id])return PDFDOCP[id];var p=PDFDOCP[id]=pdfDoc1(id).catch(function(er){logErr('PDF try 1: '+String(er&&er.message||er),(PDFSTAGE[id]||'')+' · '+navigator.userAgent.slice(0,90));
+    delete S.vids[id];try{if(VCACHE)VCACHE.then(function(c){c.delete('/m/'+id);});}catch(e){}
+    if(/library|read/.test(String(er&&er.message))){PDFJS=null;PDFSRC_I=(PDFSRC_I+1)%PDFSRC.length;}
+    return pdfDoc1(id);});
+  p.then(function(){},function(){delete PDFDOCP[id];});return p;}
+var PDFDOCP={};
+/* a picture of page 1 made by Google Drive – the backup when the phone can't draw the PDF */
+function pdfPic(id){return pdfTimeout(call('pdfPic',{fileId:id}),45000,'picture').then(function(r){if(!r||!r.data)throw new Error('NO_PICTURE');return 'data:'+(r.mime||'image/png')+';base64,'+r.data;});}
 function pdfPage(doc,n,w){return doc.getPage(n).then(function(pg){var v0=pg.getViewport({scale:1}),sc=w/v0.width,v=pg.getViewport({scale:sc}),c=document.createElement('canvas');c.width=Math.round(v.width);c.height=Math.round(v.height);
   return pg.render({canvasContext:c.getContext('2d'),viewport:v}).promise.then(function(){return c;});});}
 // first page as a picture, kept in memory → shows at once next time
-function pdfPreview(id){if(PDFPREV[id])return Promise.resolve(PDFPREV[id]);return pdfDoc(id).then(function(doc){return pdfPage(doc,1,900).then(function(c){PDFPREV[id]={img:c.toDataURL('image/jpeg',0.85),pages:doc.numPages};return PDFPREV[id];});});}
+function pdfPreview(id){if(PDFPREV[id])return Promise.resolve(PDFPREV[id]);if(PDFPREVP[id])return PDFPREVP[id];
+  var p=PDFPREVP[id]=new Promise(function(ok,no){var over=false,docBad=false,picBad=false,picOn=false;
+    function win(v){if(over)return;over=true;PDFPREV[id]=v;ok(v);}
+    function lose(er){if(docBad&&picBad&&!over){over=true;no(er);}}
+    function pic(){if(picOn)return;picOn=true;pdfPic(id).then(function(img){PDFSTAGE[id]=(PDFSTAGE[id]||'')+' pic-ok';win({img:img,pages:0,pic:1});},function(er){PDFSTAGE[id]=(PDFSTAGE[id]||'')+' pic-fail '+String(er&&er.message||er);picBad=true;lose(er);});}
+    var tm=setTimeout(pic,8000);
+    pdfDoc(id).then(function(doc){PDFSTAGE[id]+=' doc-ok';return pdfTimeout(pdfPage(doc,1,900),30000,'draw').then(function(c){clearTimeout(tm);win({img:c.toDataURL('image/jpeg',0.85),pages:doc.numPages});});})
+      .catch(function(er){clearTimeout(tm);docBad=true;pic();lose(er);});});
+  p.then(function(){delete PDFPREVP[id];},function(){delete PDFPREVP[id];});return p;}
+var PDFPREVP={};
 function pdfFull(e){var box=el('div',{class:'pdfpages'},el('div',{class:'pdfwait',text:T('Opening…')}));var vw=openViewer(box);vw.classList.add('vfull','vpdf');
   vw.appendChild(el('button',{class:'vback','aria-label':T('Back'),onclick:function(ev){ev.stopPropagation();closeViewer();queueHist();},html:'<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><path d="M15.4 5.4a1 1 0 0 1 0 1.4L10.2 12l5.2 5.2a1 1 0 1 1-1.4 1.4l-5.9-5.9a1 1 0 0 1 0-1.4l5.9-5.9a1 1 0 0 1 1.4 0z"/></svg>'}));
-  if(PDFPREV[e.pdf]){box.innerHTML='';box.appendChild(el('img',{class:'pdfimg',src:PDFPREV[e.pdf].img,alt:''}));}
-  pdfDoc(e.pdf).then(function(doc){var w=Math.min(1600,Math.round((window.innerWidth||400)*2));var chain=Promise.resolve();box.innerHTML='';
-    for(var i=1;i<=doc.numPages;i++)(function(i){chain=chain.then(function(){return pdfPage(doc,i,w).then(function(c){c.className='pdfimg';box.appendChild(c);});});})(i);return chain;})
-  .catch(function(er){if(!PDFPREV[e.pdf])box.innerHTML='';toast('❗ '+errText(er));});}
+  var real=false,shown=false,docBad=false;
+  function showImg(v){if(real||shown||!v)return;shown=true;box.innerHTML='';box.appendChild(el('img',{class:'pdfimg',src:v.img,alt:''}));if(docBad)addOpen(true);}
+  function addOpen(pic){if(box.querySelector('.pdfopen'))return;if(pic)box.appendChild(el('div',{class:'pdfwait',style:'padding:10px 16px 0;font-size:14px',text:T('Showing page 1 – open the PDF to see all of it')}));
+    box.appendChild(el('button',{class:'primary pdfopen',style:'max-width:320px;margin:10px auto;display:block',onclick:function(){toast(T('Getting the PDF ready…'));estPdfFile(e).then(function(f){estShareNow(f,e);},function(er2){toast('❗ '+errText(er2));});}},'📄 '+T('Open it in another app')));}
+  if(PDFPREV[e.pdf])showImg(PDFPREV[e.pdf]);
+  var prevP=pdfPreview(e.pdf).then(showImg,function(){});
+  pdfDoc(e.pdf).then(function(doc){var w=Math.min(1600,Math.round((window.innerWidth||400)*2));var chain=Promise.resolve(),first=true;
+    for(var i=1;i<=doc.numPages;i++)(function(i){chain=chain.then(function(){return pdfTimeout(pdfPage(doc,i,w),30000,'draw').then(function(c){if(first){first=false;real=true;box.innerHTML='';}c.className='pdfimg';box.appendChild(c);});});})(i);return chain;})
+  .catch(function(er){docBad=true;logErr('PDF view failed: '+String(er&&er.message||er),(PDFSTAGE[e.pdf]||'')+' · '+navigator.userAgent.slice(0,90));
+    if(real){addOpen(false);return;}
+    if(shown){addOpen(!!(PDFPREV[e.pdf]&&PDFPREV[e.pdf].pic));return;}
+    prevP.then(function(){if(shown){addOpen(true);return;}box.innerHTML='';box.appendChild(el('div',{class:'pdfwait',text:T("Couldn't show the PDF here.")}));addOpen(false);});});}
 var EST_PF=0;function estPrefetch(){loadPdfJs().catch(function(){});if(EST_PF)return;var l=(S.est||[]).filter(function(e){return e.pdf&&!PDFPREV[e.pdf];}).slice(0,5);if(!l.length)return;EST_PF=1;
   (function nx(i){if(i>=l.length){EST_PF=0;return;}pdfPreview(l[i].pdf).then(function(){nx(i+1);},function(){nx(i+1);});})(0);}
 function estLoad(){return call('estList',{}).then(function(r){estApply(r);if(/^est/.test(S.view||''))render();}).catch(function(){});}
@@ -4943,7 +4992,7 @@ function estOneView(){
   wrap.appendChild(step(!!e.pdf,e.pdf?T('PDF back in the app')+' · '+(e.pdfBy||'')+' '+clockOf(e.pdfAt):T('PDF not back yet')));
   if(e.pdf){
     var pv=PDFPREV[e.pdf],pc=el('button',{class:'pdfprev'},pv?el('img',{src:pv.img,alt:''}):el('div',{class:'pdfwait',text:T('Loading the estimate…')}),el('span',{class:'pdfname',text:(e.pdfName||'Estimate.pdf')+(pv&&pv.pages>1?' · '+pv.pages+' '+T('pages'):'')}));
-    if(!pv)pdfPreview(e.pdf).then(function(){if(S.view==='estone'&&S.estId===e.id)render();},function(){});
+    if(!pv)pdfPreview(e.pdf).then(function(){if(S.view==='estone'&&S.estId===e.id)render();},function(er){logErr('PDF preview failed: '+String(er&&er.message||er),(PDFSTAGE[e.pdf]||'')+' · '+navigator.userAgent.slice(0,90));var w=pc.querySelector('.pdfwait');if(w)w.textContent=T("Couldn't show the preview – tap to open the PDF");});
     pc.onclick=function(){pdfFull(e);};
     wrap.appendChild(el('div',{class:'row2b'},
       el('button',{class:'bm',onclick:function(){toast(T('Getting the PDF ready…'));estPdfFile(e).then(function(f){estShareNow(f,e);},function(er){toast('❗ '+errText(er));});}},'⇪ '+T('Share')),

@@ -37,6 +37,10 @@ Object.assign(ES,{"Today's overtime can be sent after 3:00 PM.":"Las horas extra
 Object.assign(ES,{"Overtime: no more taps by mistake":"Horas extra: ya no por error","Workers can't enter today's overtime before 3:00 PM (the row says 'Overtime from 3:00 PM'; past days still work), and every overtime they send first shows a confirm screen: the day, '1 hour extra' in big letters, 'The office checks overtime before payroll', and 'Yes, I confirm 1 hour' / 'Change'. The server blocks early entries too.":"Los trabajadores no pueden poner las horas extra de hoy antes de las 3:00 PM (la fila dice 'Horas extra desde las 3:00 PM'; los días pasados sí), y cada vez que mandan horas extra primero sale una pantalla para confirmar: el día, '1 hora extra' en grande, 'La oficina revisa las horas extra antes de la nómina', y 'Sí, confirmo 1 hora' / 'Cambiar'. El servidor también bloquea las horas puestas temprano."});
 Object.assign(ES,{"Google storage":"Almacenamiento de Google","of":"de","You get a notification at 80%, 90% and 95%.":"Recibes un aviso al 80%, 90% y 95%.","Notification when Google storage is 80% full":"Aviso cuando Google está al 80%","Your Google account (Gmail, Drive and the app's photos, videos and voice notes) is checked once a day. You get a notification when it reaches 80% full, and again at 90% and 95%. App maintenance shows how full it is right now.":"Tu cuenta de Google (Gmail, Drive y las fotos, videos y notas de voz de la app) se revisa una vez al día. Recibes un aviso al 80%, y otra vez al 90% y 95%. Mantenimiento muestra qué tan lleno está."});
 Object.assign(ES,{"Couldn't send it – the file was saved to your phone (Downloads), so it isn't lost.":"No se pudo enviar – el archivo se guardó en tu teléfono (Descargas), así no se pierde.","Video on a brand-new task no longer fails":"Video en una tarea nueva ya no falla","A video (or photo, voice note or message) sent in the chat of a task you just created – before the server finished saving it – got 'Not allowed' and the video was lost. Now it waits a moment for the task to be saved and then sends. And a video or file that can't be sent is never thrown away: it is kept on the phone and tries again by itself, and if it still can't go it is saved to your phone's Downloads.":"Un video (o foto, nota de voz o mensaje) mandado en el chat de una tarea recién creada – antes de que el servidor terminara de guardarla – salía 'No permitido' y el video se perdía. Ahora espera un momento a que la tarea se guarde y luego lo manda. Y un video o archivo que no se puede mandar nunca se tira: se guarda en el teléfono y se vuelve a intentar solo, y si aun así no se puede, se guarda en Descargas."});
+Object.assign(ES,{"Checking the signal…":"Revisando la señal…"});
+Object.assign(ES,{"Please record a shorter video (up to 300 MB).": "Graba un video más corto (hasta 300 MB).", "That video is too long. Please send a video of 4 minutes or less.": "Ese video es muy largo. Manda un video de 4 minutos o menos.", "That video is too long (max 8 minutes).": "Ese video es muy largo (máximo 8 minutos).", "Longer videos: up to 4 minutes": "Videos más largos: hasta 4 minutos", "Videos can now be up to 4 minutes / 300 MB (before: about 1¾ minutes / 80 MB – your 88 MB video was refused). The app's camera stops by itself at 4 minutes. A video that is still too big is never thrown away – it is saved to your phone's Downloads.": "Los videos ahora pueden ser de hasta 4 minutos / 300 MB (antes: cerca de 1¾ minutos / 80 MB). La cámara de la app para sola a los 4 minutos. Un video que todavía es muy grande nunca se tira – se guarda en Descargas del teléfono."});
+Object.assign(ES,{"Video (up to 4 minutes)":"Video (hasta 4 minutos)"});
+Object.assign(ES,{"Late schedule = a soft note":"Horario tarde = un aviso suave","When today's schedule is put in after 8 AM, workers still get a notification, but a soft one: '📋 Hoy – ya está en la app' with the job and 'Tu trabajo de hoy, para el registro – no tienes que ir ahora' (today's job, for the record – you don't need to go now). No 'new job' or 'you drive' alerts. Before 8 AM, and for tomorrow or later, it works as before.":"Cuando el horario de hoy se pone después de las 8 AM, los trabajadores igual reciben un aviso, pero suave: '📋 Hoy – ya está en la app' con el trabajo y 'Tu trabajo de hoy, para el registro – no tienes que ir ahora'. Sin avisos de 'trabajo nuevo' ni 'tú manejas'. Antes de las 8 AM, y para mañana o después, funciona como antes."});
 Object.assign(ES,{"Overtime from": "Horas extra desde las", "Confirm overtime": "Confirmar horas extra", "hour": "hora", "hours": "horas", "extra": "extra", "No overtime": "Sin horas extra", "Hours worked after the normal work day.": "Horas trabajadas después del horario normal.", "This removes the": "Esto quita las", "you sent before.": "que mandaste antes.", "The office checks overtime before payroll.": "La oficina revisa las horas extra antes de la nómina.", "Yes, I confirm": "Sí, confirmo", "Yes, confirm": "Sí, confirmo", "Change": "Cambiar"});
 Object.assign(ES,{"The reminders are switched off right now.":"Los recordatorios están apagados ahora."});
 Object.assign(ES,{"the holiday":"el día festivo"});
@@ -189,6 +193,9 @@ var SESS=0;
 function call(action,payload,as){var ep=SESS;return callRaw(action,payload,as).then(function(v){if(ep!==SESS)return new Promise(function(){});return v;},function(e){if(ep!==SESS)return new Promise(function(){});throw e;});}
 /* A brand-new task has a temporary id ('tmp…') until the server answers. Anything sent on it (video, photo, voice, message) waits for the real id. */
 var TMPMAP={};
+// Tap the red "Offline" label → try again right away (load the list + send anything waiting). Also re-check by itself when the phone gets signal back.
+function syncTap(){if(!S.offline)return;if(syncTap.busy)return;syncTap.busy=1;setTimeout(function(){syncTap.busy=0;},3000);toast('🔄 '+T('Checking the signal…'));try{flushQ();}catch(e){}try{vnFlush();}catch(e){}try{mqFlush();}catch(e){}refresh(true);}
+window.addEventListener('online',function(){setTimeout(function(){if(S.offline)refresh(true);},1500);});
 /* last resort: a video/file that could not be sent is downloaded to the phone, so it is never lost */
 function saveToPhone(f){try{var u=URL.createObjectURL(f),l=document.createElement('a');l.href=u;l.download=f.name||('SAM video '+today()+'.mp4');document.body.appendChild(l);l.click();setTimeout(function(){l.remove();URL.revokeObjectURL(u);},60000);return true;}catch(e){return false;}}
 function realId(id){id=String(id||'');if(id.indexOf('tmp')!==0)return Promise.resolve(id);
@@ -1057,6 +1064,8 @@ var WHATS_NEW=[
  {id:'nowork2',i:'📋',t:"'No work today?' fixes",d:"On a past day it asks 'No work this day?'. Going back to the report keeps your marks protected. The middle button now says 'No – send it as marked (nobody came)'. A report where everyone is ✗ shows '— No work' in the leader's week too, and the notification says 'Nobody came – looks like no work today'. Pop-up messages no longer block buttons under them.",go:function(){openReports();}},
  {id:'twophones',i:'🔔',t:"Two phones of one person both get notifications",d:"Two iPhones (or two Samsungs of the same model) of one person – or the main app and the test app on the same phone – were mixed up, and one silently stopped getting notifications. Each app on each phone now has its own id, so both keep working (each app signs up once more by itself).",go:function(){openMaint();}},
  {id:'noworksched',i:'🗓',t:"No 'schedule isn't in' on a no-work day",d:"When a weekday is marked as no work, Rocky and you no longer get 'Today's schedule isn't in the app yet'. The 5 PM summary shows '– no work' for a crew that didn't work.",go:function(){goView('home');}},
+ {id:'schedsoft',i:'📋',t:"Late schedule = a soft note",d:"When today's schedule is put in after 8 AM, workers still get a notification, but a soft one: '📋 Hoy – ya está en la app' with the job and 'Tu trabajo de hoy, para el registro – no tienes que ir ahora' (today's job, for the record – you don't need to go now). No 'new job' or 'you drive' alerts. Before 8 AM, and for tomorrow or later, it works as before.",go:function(){goView('home');}},
+ {id:'vid300',i:'🎥',t:"Longer videos: up to 4 minutes",d:"Videos can now be up to 4 minutes / 300 MB (before: about 1¾ minutes / 80 MB – your 88 MB video was refused). The app's camera stops by itself at 4 minutes. A video that is still too big is never thrown away – it is saved to your phone's Downloads.",go:function(){goView('chats');}},
  {id:'newtaskvid',i:'🎥',t:"Video on a brand-new task no longer fails",d:"A video (or photo, voice note or message) sent in the chat of a task you just created – before the server finished saving it – got 'Not allowed' and the video was lost. Now it waits a moment for the task to be saved and then sends. And a video or file that can't be sent is never thrown away: it is kept on the phone and tries again by itself, and if it still can't go it is saved to your phone's Downloads.",go:function(){goView('tasks');}},
  {id:'storage',i:'💾',t:"Notification when Google storage is 80% full",d:"Your Google account (Gmail, Drive and the app's photos, videos and voice notes) is checked once a day. You get a notification when it reaches 80% full, and again at 90% and 95%. App maintenance shows how full it is right now.",go:function(){openMaint();}},
  {id:'otsafe',i:'⏱',t:"Overtime: no more taps by mistake",d:"Workers can't enter today's overtime before 3:00 PM (the row says 'Overtime from 3:00 PM'; past days still work), and every overtime they send first shows a confirm screen: the day, '1 hour extra' in big letters, 'The office checks overtime before payroll', and 'Yes, I confirm 1 hour' / 'Change'. The server blocks early entries too.",go:function(){openMaint();}},
@@ -1466,7 +1475,7 @@ function openPinChange(){
 }
 // ---------- Notifications open the right screen ----------
 // Auto-update: when the app comes back on screen, check if a newer version is out and reload into it (never while something is open).
-var BUILD='202611161813',lastUpd=0;
+var BUILD='202611161838',lastUpd=0;
 function checkUpdate(force){if(!force&&Date.now()-lastUpd<120000)return;lastUpd=Date.now();
   fetch('version.json?x='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
     if(!v||!v.v||v.v===BUILD)return;
@@ -1524,7 +1533,7 @@ applyBig();
 function header(){
   return el('header',{class:'top'},
     el('div',{class:'hl'},el('div',{class:'wmark'},el('span',{class:'wm1',text:'SAM'}),el('span',{class:'wm2',text:'To-Do'})),el('div',{class:'title'},isOffice()?T(({snowdrv:'Snow plowing',est:'Estimates',estone:'Estimates',home:'Today',phones:'Phones',need:'Needs you',tasks:'Tasks',sched:'Schedule',sites:'Job sites',jobs:'Jobs',jobhist:'Jobs',snow:'Snow plowing',chats:'Messages',more:'More',cal:'Calendar',need:'Needs you'})[S.view||'home']||'To-Do'):T(({chats:'Messages',phones:'Phones',week:'My week',more:'More',cal:'Calendar',myjobs:'My jobs'})[S.view]||'Today'))),
-    el('div',{class:'right'},el('span',{class:'sync'+(S.offline?' off':'')},savingLong()?T('Saving…'):(S.offline?'📵 '+T('Offline')+(S.lastOk?' · '+clockOf(S.lastOk):''):'')),
+    el('div',{class:'right'},el('span',{class:'sync'+(S.offline?' off':''),onclick:syncTap,style:S.offline?'cursor:pointer':null},savingLong()?T('Saving…'):(S.offline?'📵 '+T('Offline')+(S.lastOk?' · '+clockOf(S.lastOk):''):'')),
       el('button',{class:'me meav','aria-label':S.name||S.me,onclick:openMenu},avatar(S.me,S.name||S.me,44))));
 }
 function openSettings(){
@@ -3355,6 +3364,7 @@ function sendInline(atts,id){
     pr.then(function(r){if(a._mq&&r!=='Q')mqDel(a._mq);pendDone(id,a._mid);render();chatRepaint();one();}).catch(function(err){pendDone(id,a._mid);render();chatRepaint();
       if(isNet(err)){if(!a._mq){mqAdd({task:id,kind:a.kind,dur:a.dur||0,cap:a.cap||'',name:a.f.name||'',mime:a.f.type||''},a.f);toast('⏳ '+T('No signal — saved on the phone, it will send by itself when the signal is back.'));}else{delete MQS[a._mq];mqShow({q:a._mq,task:id,kind:a.kind,dur:a.dur||0,cap:a.cap||'',name:a.f.name||'',mime:a.f.type||''},a.f);}one();return;}
       if(!a._mq&&a.kind!=='photo'&&!/TOO_BIG|CANCELLED/.test(String(err&&err.message))){mqAdd({task:id,kind:a.kind,dur:a.dur||0,cap:a.cap||'',name:a.f.name||'',mime:a.f.type||''},a.f);toast('⏳ '+T('Could not send right now – saved on the phone, it will try again by itself.'));logErr('Attachment upload failed (kept): '+String(err&&err.message||err),a.kind+' '+a.f.size);one();return;}
+      if(a.kind!=='photo'&&/TOO_BIG/.test(String(err&&err.message))&&saveToPhone(a.f)){if(a._mq)mqDel(a._mq);toast('❗ '+T("Couldn't send it – the file was saved to your phone (Downloads), so it isn't lost."));logErr('Too big – saved to phone',a.kind+' '+a.f.size);one();return;}
       if(a._mq){if(mqRetry(a._mq)){mqShow({q:a._mq,task:id,kind:a.kind,dur:a.dur||0,cap:a.cap||'',name:a.f.name||'',mime:a.f.type||''},a.f);one();return;}mqDel(a._mq);if(a.kind!=='photo'&&saveToPhone(a.f)){toast('❗ '+T("Couldn't send it – the file was saved to your phone (Downloads), so it isn't lost."));logErr('Attachment saved to phone after failing: '+String(err&&err.message||err),a.kind+' '+a.f.size);one();return;}}toast('❗ '+T('Could not upload')+' '+(a.f.name||'')+'. '+errText(err));logErr('Attachment upload failed: '+String(err&&err.message||err),a.kind+' '+a.f.size);one();});}
   one();
 }
@@ -3453,14 +3463,14 @@ function thumb(id){
   return img;
 }
 // ---------- videos ----------
-var VID_MAX_SEC=105,VID_MAX_BYTES=80*1024*1024;S.vids={};
+var VID_MAX_SEC=240,VID_MAX_BYTES=300*1024*1024; /* Nov 16: 4 minutes / 300 MB (was 1¾ min / 80 MB – a 1½-minute video was refused) */S.vids={};
 function parseVideos(x){try{return x.videos?JSON.parse(x.videos):[];}catch(e){return [];}}
 function fmtDur(s){s=Math.round(+s||0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function openMedia(x){if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)return openCam(x);  // same camera as the chat: tap = photo, hold = video, gallery inside
   openSheet([el('h2',{text:T('Add photo or video')}),el('p',{class:'muted',style:'margin:0',text:taskLabel(x)}),
   el('div',{class:'lbl',text:'📷 '+T('Photo')}),
   el('div',{class:'row2'},el('button',{class:'primary',onclick:function(){closeSheet();pickPhoto(x,true);}},'📷 '+T('Take photo')),el('button',{class:'cbtn',onclick:function(){closeSheet();pickPhoto(x);}},'🖼 '+T('From gallery'))),
-  el('div',{class:'lbl',text:'🎥 '+T('Video (up to 1½ minutes)')}),
+  el('div',{class:'lbl',text:'🎥 '+T('Video (up to 4 minutes)')}),
   el('div',{class:'row2'},el('button',{class:'primary',style:'background:#1B8F7B',onclick:function(){closeSheet();pickVideo(x,true);}},'🎥 '+T('Record video')),el('button',{class:'cbtn',onclick:function(){closeSheet();pickVideo(x);}},'🎞 '+T('From gallery'))),
   el('button',{class:'ghost',onclick:closeSheet},T('Cancel'))]);}
 var videoTask=null;
@@ -3473,8 +3483,8 @@ document.getElementById('videoIn').addEventListener('change',function(e){
   var f=e.target.files&&e.target.files[0],x=videoTask;if(!f||!x)return;
   videoDuration(f).then(function(dur){
     var mb=Math.max(1,Math.round(f.size/1048576));
-    if(dur>VID_MAX_SEC){openSheet([el('h2',{text:'🎥'}),el('p',{text:T('That video is too long. Please send a video of 1½ minutes or less.')}),el('button',{class:'primary',onclick:closeSheet},'OK')]);return;}
-    if(f.size>VID_MAX_BYTES){openSheet([el('h2',{text:'🎥'}),el('p',{text:T('That video file is too big')+' ('+mb+' MB). '+T('Please record a shorter video (up to 80 MB).')}),el('button',{class:'primary',onclick:closeSheet},'OK')]);return;}
+    if(dur>VID_MAX_SEC){openSheet([el('h2',{text:'🎥'}),el('p',{text:T('That video is too long. Please send a video of 4 minutes or less.')}),el('button',{class:'primary',onclick:closeSheet},'OK')]);return;}
+    if(f.size>VID_MAX_BYTES){openSheet([el('h2',{text:'🎥'}),el('p',{text:T('That video file is too big')+' ('+mb+' MB). '+T('Please record a shorter video (up to 300 MB).')}),el('button',{class:'primary',onclick:closeSheet},'OK')]);return;}
     var bar=el('div',{class:'pbar'},el('div',{class:'pfill'})),pct=el('div',{class:'muted',style:'text-align:center',text:'0% · '+mb+' MB'}),cancelled=false;
     openSheet([el('h2',{text:'🎥 '+T('Uploading video…')}),bar,pct,el('p',{class:'muted',style:'text-align:center;font-size:13px',text:T('Keep the app open until it finishes.')}),el('button',{class:'ghost vcancel'},T('Cancel'))]);
     var scrim=document.getElementById('scrim');if(scrim){scrim.dataset.lock='1';var nb=scrim.cloneNode(true);scrim.parentNode.replaceChild(nb,scrim);bar=nb.querySelector('.pbar');pct=nb.querySelector('.pbar').nextSibling;
@@ -3754,10 +3764,10 @@ function save(action,payload,after){SAVE_GEN++;var tmps=[];
 
 function refresh(force){
   if(!S.me||!S.pin||(S.saving&&!force))return;
-  var goAt=GO_GEN,sg=SAVE_GEN;call('list').then(function(d){S.offline=false;S.quickIn=null;S.lastOk=new Date().toISOString();if(S.saving||sg!==SAVE_GEN)return;
+  var goAt=GO_GEN,sg=SAVE_GEN;call('list').then(function(d){var wasOff=S.offline;S.offline=false;S.quickIn=null;S.lastOk=new Date().toISOString();if(S.saving||sg!==SAVE_GEN)return;
     // battery: nothing new since last time → don't rebuild the screen (still redraw every 10 min for the clock / greeting)
     var sig='';try{var g0=d&&d.got,mine=g0&&g0[S.me];if(g0)delete g0[S.me];sig=JSON.stringify(d);if(g0&&mine)g0[S.me]=mine;}catch(e){}
-    if(!force&&sig&&sig===S.lastSig&&S.loaded&&Date.now()-(S.lastDraw||0)<600000&&goAt===GO_GEN){runGo();return;}S.lastSig=sig;S.lastDraw=Date.now();apply(d);S.loaded=true;S.err='';if(goAt===GO_GEN)GO_FRESH=true;if(!document.getElementById('scrim'))render();else if(S.sheetRefresh){try{S.sheetRefresh();}catch(e){}}runGo();})
+    if(!force&&!wasOff&&sig&&sig===S.lastSig&&S.loaded&&Date.now()-(S.lastDraw||0)<600000&&goAt===GO_GEN){runGo();return;}S.lastSig=sig;S.lastDraw=Date.now();apply(d);S.loaded=true;S.err='';if(goAt===GO_GEN)GO_FRESH=true;if(!document.getElementById('scrim'))render();else if(S.sheetRefresh){try{S.sheetRefresh();}catch(e){}}runGo();})
   .catch(function(e){if(isBadPin(e)){var qi=S.quickIn,pk=qi?(PEOPLE.indexOf(qi)>=0?qi:'crew'):null;signOut(qi?T('Your PIN was changed – enter the new one'):'');if(pk){S.pick=pk;render();}return;}if(/LOCKED/.test(String(e&&e.message)))toast('🔒 '+errText(e));if(isNet(e))S.offline=true;S.loaded=true;if(!S.tasks.length)S.err=T('Could not load the list. Check your signal.');render();});
 }
 function startPolling(){setTimeout(mqLoad,800);setTimeout(mqFlush,3000);clearInterval(window.MQT);window.MQT=setInterval(function(){if(MQN&&!document.hidden)mqFlush();},45000);
@@ -3801,9 +3811,9 @@ function openEditor(x,preset){
     var pick=function(kind){var inp=el('input',{type:'file',accept:kind==='photo'?'image/*':kind==='video'?'video/*':'*/*',style:'display:none'});if(kind!=='file')inp.multiple=true;document.body.appendChild(inp);
       inp.onchange=function(){var fs=[].slice.call(inp.files||[]);inp.remove();fs.forEach(function(f){
         if(kind==='file'&&f.size>150*1048576){toast('❗ '+f.name+': '+T('too big (max 150 MB)'));return;}
-        if(kind==='video'&&f.size>VID_MAX_BYTES){toast('❗ '+T('That video file is too big')+' (max 80 MB)');return;}
+        if(kind==='video'&&f.size>VID_MAX_BYTES){toast('❗ '+T('That video file is too big')+' (max 300 MB)');return;}
         var a={kind:kind,f:f};atts.push(a);paintAtt();
-        if(kind==='video')videoDuration(f).then(function(d){a.dur=Math.round(d);if(d>VID_MAX_SEC*2){atts.splice(atts.indexOf(a),1);toast('❗ '+T('That video is too long (max 3 minutes).'));}paintAtt();});});};
+        if(kind==='video')videoDuration(f).then(function(d){a.dur=Math.round(d);if(d>VID_MAX_SEC*2){atts.splice(atts.indexOf(a),1);toast('❗ '+T('That video is too long (max 8 minutes).'));}paintAtt();});});};
       inp.click();};
     attBox=el('div',{},el('label',{class:'lbl',text:'📎 '+T('Attach (optional)')}),
       el('div',{class:'attrow'},el('button',{type:'button',class:'attbtn',onclick:function(){pick('photo');}},'📷 '+T('Photo')),el('button',{type:'button',class:'attbtn',onclick:function(){pick('video');}},'🎥 '+T('Video')),el('button',{type:'button',class:'attbtn',onclick:function(){pick('file');}},'📄 '+T('File / plans'))),chips);

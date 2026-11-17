@@ -671,7 +671,7 @@ function openMaint(fresh){
     el('button',{class:'cbtn',onclick:openDevices},'📱 '+T('Phones signed up for alerts')+(M.devices?' · '+T('yours')+': '+mine:'')),
     el('button',{class:'cbtn',onclick:openNotSetUp},'📲 '+T('Workers alerts on')+' '+on+'/'+crew.length,never?el('small',{class:'muted',style:'display:block;font-weight:600',text:never+' '+T('never opened the app')}):null),
     el('button',{class:'cbtn',onclick:function(){pickPerson('👀 '+T('See the app as…'),function(p){if(p.id==='Yossi'){toast(T('That is you'));return;}startViewAs(p);});}},'👀 '+T('See the app as someone else')),
-    el('button',{class:'cbtn',onclick:openUsage},'⏱ '+T(window.SAM_BETA?'Time in the app – every day':'Time in the app today')+((M.usage||[]).length?' · '+M.usage.length+' '+T('people'):'')),
+    el('button',{class:'cbtn',onclick:openUsage},'⏱ '+T('Time in the app – every day')+((M.usage||[]).length?' · '+M.usage.length+' '+T('people'):'')),
     el('button',{class:'cbtn',onclick:openPraisePreview},'✓ '+T('Compliments preview')),
     el('button',{class:'cbtn',onclick:openSnowPractice},'❄️ '+T('Snow practice (only you)')),
     el('button',{class:'cbtn',onclick:function(){EOD_PREVIEW=!EOD_PREVIEW;closeSheet(true,true);if(EOD_PREVIEW){S.tab=S.tab&&S.tab!=='crew'?S.tab:'Yossi';goView('tasks');toast('🌙 '+T('Showing it like after 5:30 – only on your phone'));}else{render();toast(T('Back to the real time'));}}},'🌙 '+(EOD_PREVIEW?T('Stop the after-5:30 preview'):T('Preview after 5:30 (only you)'))),
@@ -685,7 +685,7 @@ function openMaint(fresh){
     el('button',{class:'ghost',onclick:closeSheet},T('Close'))]);
 }
 function fmtSecs(n){n=Math.round(+n||0);if(n<60)return n?'<1 min':'0 min';var h=Math.floor(n/3600),m=Math.round((n%3600)/60);if(m===60){h++;m=0;}return (h?h+' hr ':'')+(m||!h?m+' min':'');}
-function openUsage(){if(window.SAM_BETA)return openUsageDays(today());var M=MAINT||{},l=M.usage||[];
+function openUsage(){return openUsageDays(today());var M=MAINT||{},l=M.usage||[];
   openSheet([el('h2',{text:'⏱ '+T('Time in the app today')}),el('p',{class:'muted',style:'margin:0 0 8px',text:T('How long each person had the app open on the screen today, and how many times they opened it.')}),
     l.length?el('div',{class:'wktable'},l.map(function(u){return el('div',{class:'wkrow'},el('span',{},el('b',{text:u.name}),el('br'),el('small',{class:'muted',text:u.opens+' '+T('times')+(u.first?' · '+clockOf(u.first)+' – '+clockOf(u.last):'')})),el('b',{text:fmtSecs(u.secs)}));})):el('p',{class:'empty',text:T('Nothing yet today.')}),
     el('p',{class:'muted',style:'font-size:13px;margin-top:8px',text:T('Counting started today, so earlier days are not here.')}),
@@ -1569,7 +1569,7 @@ function openPinChange(){
 }
 // ---------- Notifications open the right screen ----------
 // Auto-update: when the app comes back on screen, check if a newer version is out and reload into it (never while something is open).
-var BUILD='202611170459',lastUpd=0;
+var BUILD='202611171251',lastUpd=0;
 function checkUpdate(force){if(!force&&Date.now()-lastUpd<120000)return;lastUpd=Date.now();
   fetch('version.json?x='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
     if(!v||!v.v||v.v===BUILD)return;

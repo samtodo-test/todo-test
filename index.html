@@ -1599,7 +1599,7 @@ function openPinChange(){
 }
 // ---------- Notifications open the right screen ----------
 // Auto-update: when the app comes back on screen, check if a newer version is out and reload into it (never while something is open).
-var BUILD='202611192343',lastUpd=0;
+var BUILD='202611200020',lastUpd=0;
 function checkUpdate(force){if(!force&&Date.now()-lastUpd<120000)return;lastUpd=Date.now();
   fetch('version.json?x='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
     if(!v||!v.v||v.v===BUILD)return;
@@ -2342,7 +2342,7 @@ function stSwitch(x){var cur=x.status||'todo',drag=null;
     var pos=Math.max(0,Math.min(travel(),d.base+(px-d.sx))),f=pos/travel();
     if(cur==='half'&&f>=0.82){setX(travel());w.classList.add('st-done');w.classList.remove('st-half');cur='done';thLabel();
       openDone(x);var iv=setInterval(function(){if(document.querySelector('.scrim'))return;clearInterval(iv);var t=allT().filter(function(t){return t.id===x.id;})[0];if(!t||t.status!=='done'){cur='half';w.classList.remove('st-done','far');w.classList.add('st-half');thLabel();setX(0);}},300);return;}
-    if(cur==='done'&&f<=0.18){setX(0);save('update',{id:x.id,status:window.SAM_BETA?'todo':'half'});return;}
+    if(cur==='done'&&f<=0.18){setX(0);save('update',{id:x.id,status:'todo'});return;}
     setX(cur==='done'?travel():0);}
   w.addEventListener('touchstart',function(e){var t=e.touches[0];down(t.clientX,t.clientY);e.stopPropagation();},{passive:true});
   w.addEventListener('touchmove',function(e){var t=e.touches[0];move(t.clientX,t.clientY,e);},{passive:false});
@@ -2401,7 +2401,7 @@ function card(x,opts){
     photos.length?el('div',{class:'thumbs'},photos.map(function(id){return thumb(id);})):null,
     taskChatBtn(x),
     el('div',{class:'actions'},
-      window.SAM_BETA&&x.status!=='done'?slideDone(x,true):stSwitch(x),
+      x.status!=='done'?slideDone(x,true):stSwitch(x),
       isOffice()&&x.status!=='done'&&!opts.crew?el('button',{class:'push',onclick:function(){openPush(x);}},T('Push →')):null));
 }
 

@@ -94,7 +94,7 @@ Object.assign(ES,{"Voice notes like WhatsApp": "Notas de voz como WhatsApp", "A 
 Object.assign(ES,{"Voice notes play one after another": "Las notas de voz suenan una tras otra", "When voice notes are right under each other (from anyone), the next one plays by itself when one ends – like WhatsApp. A text, photo or video in between stops it, and leaving the chat stops it.": "Cuando hay notas de voz una debajo de otra (de cualquier persona), la siguiente suena sola cuando termina una – como WhatsApp. Un texto, foto o video en medio la detiene, y salir del chat la detiene."});
 Object.assign(ES,{"Blue ticks in My notes": "Palomitas azules en Mis notas", "Your own notes now get the blue double tick as soon as they are saved – the same look as a message someone has read.": "Tus propias notas ahora tienen las dos palomitas azules en cuanto se guardan – igual que un mensaje que alguien ya leyó.", "Seen": "Visto"});
 Object.assign(ES,{'Downloading…':'Descargando…','Saved':'Guardado'});
-Object.assign(ES,{'Wait until it is loaded':'Espera a que cargue','Could not save it':'No se pudo guardar','This phone can not share it from here':'Este teléfono no puede compartirlo desde aquí','Ready – tap share again':'Listo – toca compartir otra vez','Getting it ready…':'Preparándolo…','Could not share it':'No se pudo compartir'});
+Object.assign(ES,{'Wait until it is loaded':'Espera a que cargue','Could not save it':'No se pudo guardar','Saved – in your Gallery under Download':'Guardado – en tu Galería, en Download','Saved – this phone could not change the sound, so it has no sound':'Guardado – este teléfono no pudo cambiar el sonido, así que va sin sonido','This phone could not change the sound – the video goes without sound':'Este teléfono no pudo cambiar el sonido – el video va sin sonido','This phone can not share it from here':'Este teléfono no puede compartirlo desde aquí','Ready – tap share again':'Listo – toca compartir otra vez','Getting it ready…':'Preparándolo…','Could not share it':'No se pudo compartir'});
 Object.assign(ES,{"Full-screen video like WhatsApp": "Video en pantalla completa como WhatsApp", "Open a video in a chat and tap it once: on top you see who sent it and when, with Download and Forward. At the bottom: the time on the left of the line, the length on the right, the speed (1× 1.5× 2×) on the same line, and a Reply box. Photos opened full screen have the same top bar (Download, Forward). Hold the video for all the options.": "Abre un video en un chat y tócalo una vez: arriba ves quién lo envió y cuándo, con Descargar y Reenviar. Abajo: el tiempo a la izquierda de la línea, el largo a la derecha, la velocidad (1× 1.5× 2×) en la misma línea, y una caja para Responder. Las fotos en pantalla completa tienen la misma barra arriba (Descargar, Reenviar). Mantén presionado el video para todas las opciones.", "Wait until the video is loaded": "Espera a que cargue el video", "Saved to the phone": "Guardado en el teléfono", "Download": "Descargar"});
 Object.assign(ES,{"Back in Messages goes to All first": "En Mensajes, Atrás va primero a Todos", "In Messages, when you are on Jobs, Chats or Groups, Back takes you to All. Press Back again to leave Messages.": "En Mensajes, cuando estás en Trabajos, Chats o Grupos, Atrás te lleva a Todos. Toca Atrás otra vez para salir de Mensajes."});
 Object.assign(ES,{"Several videos at once + more fixes": "Varios videos a la vez + más arreglos", "Sending 2 or more videos (or photos) together: each one keeps showing with its own % until it is sent, and a video is never saved twice. Also: Slide to Done works again right away after closing the box, the worker card says \"Driver:\", the chat list puts the newest messages on top, \"Waiting to send\" is red, no car emoji in the schedule driver list, and many small Spanish and small-phone fixes.": "Al enviar 2 o más videos (o fotos) juntos: cada uno se sigue viendo con su propio % hasta que se envía, y un video nunca se guarda dos veces. También: Desliza a Listo funciona de nuevo enseguida después de cerrar la ventana, la tarjeta del trabajador dice \"Chofer:\", la lista de chats pone los mensajes más nuevos arriba, \"Esperando para enviar\" está en rojo, ya no hay emoji de carro en la lista de choferes del horario, y muchos arreglos pequeños de español y de teléfonos pequeños."});
@@ -1599,7 +1599,7 @@ function openPinChange(){
 }
 // ---------- Notifications open the right screen ----------
 // Auto-update: when the app comes back on screen, check if a newer version is out and reload into it (never while something is open).
-var BUILD='202611200048',lastUpd=0;
+var BUILD='202611200058',lastUpd=0;
 function checkUpdate(force){if(!force&&Date.now()-lastUpd<120000)return;lastUpd=Date.now();
   fetch('version.json?x='+Date.now(),{cache:'no-store'}).then(function(r){return r.json();}).then(function(v){
     if(!v||!v.v||v.v===BUILD)return;
@@ -3268,7 +3268,7 @@ function openCam(x,videoFirst){
   function photoFrame(){var c=document.createElement('canvas');c.width=vid.videoWidth;c.height=vid.videoHeight;var g=c.getContext('2d');if(facing==='user'){g.translate(c.width,0);g.scale(-1,1);}if(!zNative&&zCur>1){var sw=vid.videoWidth/zCur,sh=vid.videoHeight/zCur;g.drawImage(vid,(vid.videoWidth-sw)/2,(vid.videoHeight-sh)/2,sw,sh,0,0,c.width,c.height);}else g.drawImage(vid,0,0);
     try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
     c.toBlob(function(b){if(!b)return;var f=new File([b],'photo-'+Date.now()+'.jpg',{type:'image/jpeg'});review({kind:'photo',f:f},URL.createObjectURL(b));},'image/jpeg',0.9);}
-  function recStart(){if(!stream||recording)return;var mime=['video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].filter(function(m){try{return MediaRecorder.isTypeSupported(m);}catch(e){return false;}})[0]||'';
+  function recStart(){if(!stream||recording)return;var mime=['video/mp4;codecs=avc1,mp4a.40.2','video/mp4;codecs=avc1.42E01F,mp4a.40.2','video/mp4;codecs=avc1,mp4a','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].filter(function(m){try{return MediaRecorder.isTypeSupported(m);}catch(e){return false;}})[0]||'';
     // Phones without camera zoom (iPhone): the video is drawn through a canvas, so the zoom you see is the zoom you get.
     var src=stream;cvStop();
     if((!zNative||vid.videoWidth>1920)&&vid.videoWidth){try{var zz=zNative?1:zCur,cw=Math.min(1920,vid.videoWidth),ch2=Math.round(cw*vid.videoHeight/vid.videoWidth),cv=document.createElement('canvas');cv.width=cw;cv.height=ch2;var cg=cv.getContext('2d');
@@ -3894,89 +3894,135 @@ function vPlayer(url,it){
 // Top bar of a full-screen photo / video (like WhatsApp): ← · who sent it + when · Download · Forward
 var VB_BK='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
     VB_DL='<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+function vName(at){var d=at?new Date(at):new Date(),z=function(n){return (n<10?'0':'')+n;};return 'SAM video '+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+'.'+z(d.getMinutes())+'.'+z(d.getSeconds())+'.mp4';}
 function vWho(m){return m&&m.by?(m.by===S.me?T('You'):nameOf(m.by)):'';}
 function vWhen(at){return at?(dayLabelOf(at)+', '+clockOf(at)):'';}
 // a mint bubble on top of the full-screen photo / video (the normal toast hides behind it)
 function vBubble(txt,bad){var vw=document.getElementById('viewer')||document.body,o=vw.querySelector('.vbubble');if(o)o.remove();var b=el('div',{class:'vbubble'+(bad?' bad':''),text:txt});vw.appendChild(b);setTimeout(function(){b.classList.add('out');},1800);setTimeout(function(){b.remove();},2300);}
-// A video made with the app's camera is a "streaming" MP4 (in pieces). WhatsApp and the Gallery don't take that kind.
-// This turns it into a normal MP4 on the phone – same picture and sound, nothing re-encoded. Returns null if it is already normal.
-function fixMp4(buf){
+// Videos made with the app's camera (Chrome on Android): a "streaming" MP4 in pieces, with Opus sound.
+// WhatsApp and the Gallery don't take that. fixVideo makes a normal MP4: picture copied as is, sound turned into AAC
+// (the sound every phone camera uses). Returns {blob, noSound} or null when the file is already fine.
+function mp4Parse(buf){
   var d=new Uint8Array(buf),dv=new DataView(buf),L=d.length;
   function u32(o){return dv.getUint32(o);}
   function u64(o){return dv.getUint32(o)*4294967296+dv.getUint32(o+4);}
   function boxes(s,e){var r=[],i=s;while(i+8<=e){var sz=u32(i),t=String.fromCharCode(d[i+4],d[i+5],d[i+6],d[i+7]),h=8;if(sz===1){sz=u64(i+8);h=16;}else if(sz===0)sz=e-i;if(sz<h||i+sz>e)break;r.push({t:t,s:i,e:i+sz,b:i+h});i+=sz;}return r;}
   function kid(b,t){var k=boxes(b.b,b.e);for(var i=0;i<k.length;i++)if(k[i].t===t)return k[i];return null;}
   function kids(b,t){return boxes(b.b,b.e).filter(function(x){return x.t===t;});}
-  var top=boxes(0,L),moov=null,moofs=[],ftyp=null;
-  top.forEach(function(b){if(b.t==='moov')moov=b;else if(b.t==='moof')moofs.push(b);else if(b.t==='ftyp')ftyp=b;});
-  if(!moov||!moofs.length)return null;
-  var trex={},mvex=kid(moov,'mvex');
+  var P={d:d,dv:dv,u32:u32,u64:u64,boxes:boxes,kid:kid,kids:kids,moofs:[],tracks:[]};
+  boxes(0,L).forEach(function(b){if(b.t==='moov')P.moov=b;else if(b.t==='moof')P.moofs.push(b);else if(b.t==='ftyp')P.ftyp=b;});
+  if(!P.moov)return null;
+  var trex={},mvex=kid(P.moov,'mvex');
   if(mvex)kids(mvex,'trex').forEach(function(x){var o=x.b+4;trex[u32(o)]={dur:u32(o+8),size:u32(o+12),flags:u32(o+16)};});
-  var traks=kids(moov,'trak'),T={};
-  traks.forEach(function(tk){var th=kid(tk,'tkhd'),v=d[th.b],id=u32(th.b+(v?20:12));T[id]={trak:tk,id:id,s:[]};});
-  // every sample: where it is, how big, how long, key frame or not
-  var all=[];
-  moofs.forEach(function(mf){var prevEnd=mf.s;kids(mf,'traf').forEach(function(tf,ti){
-    var hd=kid(tf,'tfhd'),fl=u32(hd.b)&0xffffff,o=hd.b+4,id=u32(o);o+=4;var base=null,dd,ds,dfl,tx=trex[id]||{dur:0,size:0,flags:0};
-    if(fl&1){base=u64(o);o+=8;}if(fl&2)o+=4;dd=(fl&8)?u32(o):tx.dur;if(fl&8)o+=4;ds=(fl&16)?u32(o):tx.size;if(fl&16)o+=4;dfl=(fl&32)?u32(o):tx.flags;
-    if(base===null)base=(fl&0x20000)||ti===0?mf.s:prevEnd;
-    var tr=T[id];if(!tr)return;var pos=base;
-    kids(tf,'trun').forEach(function(rn){var v=d[rn.b],f=u32(rn.b)&0xffffff,o2=rn.b+4,n=u32(o2);o2+=4;pos=base;
-      if(f&1){pos=base+dv.getInt32(o2);o2+=4;}var ff=null;if(f&4){ff=u32(o2);o2+=4;}
-      for(var i=0;i<n;i++){var du=dd,sz=ds,sf=(i===0&&ff!==null)?ff:dfl,ct=0;
-        if(f&0x100){du=u32(o2);o2+=4;}if(f&0x200){sz=u32(o2);o2+=4;}if(f&0x400){sf=u32(o2);o2+=4;}if(f&0x800){ct=v?dv.getInt32(o2):u32(o2);o2+=4;}
-        var smp={off:pos,size:sz,dur:du,sync:!((sf>>16)&1),ct:ct};tr.s.push(smp);all.push(smp);pos+=sz;}
-      prevEnd=pos;});});});
-  if(!all.length)return null;
-  for(var i=0;i<all.length;i++)if(all[i].off+all[i].size>L)return null;
-  // tiny box writer
+  var T={};
+  kids(P.moov,'trak').forEach(function(tk){var th=kid(tk,'tkhd'),v=d[th.b],id=u32(th.b+(v?20:12)),mdia=kid(tk,'mdia'),mdhd=kid(mdia,'mdhd'),stbl=kid(kid(mdia,'minf'),'stbl'),stsd=kid(stbl,'stsd'),ent=boxes(stsd.b+8,stsd.e)[0];
+    var tr={trak:tk,id:id,s:[],stsd:stsd,codec:ent?ent.t:'',ts:u32(mdhd.b+(d[mdhd.b]?20:12))};
+    if(tr.codec==='Opus'){var ch=dv.getUint16(ent.b+16),dops=kid({b:ent.b+28,e:ent.e},'dOps');tr.ch=ch;tr.rate=dv.getUint32(ent.b+24)>>>16;tr.dops=dops?d.subarray(dops.b,dops.e):null;}
+    T[id]=tr;P.tracks.push(tr);});
+  if(P.moofs.length){
+    P.moofs.forEach(function(mf){var prevEnd=mf.s;kids(mf,'traf').forEach(function(tf,ti){
+      var hd=kid(tf,'tfhd'),fl=u32(hd.b)&0xffffff,o=hd.b+4,id=u32(o);o+=4;var base=null,dd,ds,dfl,tx=trex[id]||{dur:0,size:0,flags:0};
+      if(fl&1){base=u64(o);o+=8;}if(fl&2)o+=4;dd=(fl&8)?u32(o):tx.dur;if(fl&8)o+=4;ds=(fl&16)?u32(o):tx.size;if(fl&16)o+=4;dfl=(fl&32)?u32(o):tx.flags;
+      if(base===null)base=(fl&0x20000)||ti===0?mf.s:prevEnd;
+      var tr=T[id];if(!tr)return;
+      kids(tf,'trun').forEach(function(rn){var v=d[rn.b],f=u32(rn.b)&0xffffff,o2=rn.b+4,n=u32(o2);o2+=4;var pos=base;
+        if(f&1){pos=base+dv.getInt32(o2);o2+=4;}var ff=null;if(f&4){ff=u32(o2);o2+=4;}
+        for(var i=0;i<n;i++){var du=dd,sz=ds,sf=(i===0&&ff!==null)?ff:dfl,ct=0;
+          if(f&0x100){du=u32(o2);o2+=4;}if(f&0x200){sz=u32(o2);o2+=4;}if(f&0x400){sf=u32(o2);o2+=4;}if(f&0x800){ct=v?dv.getInt32(o2):u32(o2);o2+=4;}
+          if(pos+sz>d.length)return;tr.s.push({off:pos,size:sz,dur:du,sync:!((sf>>16)&1),ct:ct});pos+=sz;}
+        prevEnd=pos;});});});
+  }else{
+    // a normal MP4: read its tables (only needed when the sound is Opus)
+    P.tracks.forEach(function(tr){var stbl=kid(kid(kid(tr.trak,'mdia'),'minf'),'stbl');function tb(t){return kid(stbl,t);}
+      var sz=tb('stsz'),co=tb('stco')||tb('co64'),sc=tb('stsc'),st=tb('stts'),ss=tb('stss'),cs=tb('ctts');if(!sz||!co||!sc||!st)return;
+      var n=u32(sz.b+8),fix=u32(sz.b+4),sizes=[];for(var i=0;i<n;i++)sizes.push(fix||u32(sz.b+12+i*4));
+      var nc=u32(co.b+4),c64=co.t==='co64',offs=[];for(i=0;i<nc;i++)offs.push(c64?u64(co.b+8+i*8):u32(co.b+8+i*4));
+      var ne=u32(sc.b+4),E=[];for(i=0;i<ne;i++)E.push([u32(sc.b+8+i*12),u32(sc.b+12+i*12)]);
+      var k=0;for(var c=0;c<nc&&k<n;c++){var per=1;for(var j=0;j<E.length;j++)if(E[j][0]<=c+1)per=E[j][1];var p=offs[c];for(var q=0;q<per&&k<n;q++){tr.s.push({off:p,size:sizes[k],dur:0,sync:!ss,ct:0});p+=sizes[k];k++;}}
+      var m=u32(st.b+4);k=0;for(i=0;i<m;i++){var cnt=u32(st.b+8+i*8),dl=u32(st.b+12+i*8);for(j=0;j<cnt&&k<tr.s.length;j++)tr.s[k++].dur=dl;}
+      if(ss){var m2=u32(ss.b+4);for(i=0;i<m2;i++){var x=tr.s[u32(ss.b+8+i*4)-1];if(x)x.sync=true;}}
+      if(cs){var m3=u32(cs.b+4);k=0;for(i=0;i<m3;i++){var c2=u32(cs.b+8+i*8),o3=dv.getInt32(cs.b+12+i*8);for(j=0;j<c2&&k<tr.s.length;j++)tr.s[k++].ct=o3;}}});
+  }
+  return P;}
+// Opus sound → AAC with the phone's own encoder (WebCodecs). Resolves {samples:[{data,dur}], asc} or null if this phone can't.
+function opusToAac(P,tr){
+  if(typeof AudioDecoder==='undefined'||typeof AudioEncoder==='undefined')return Promise.resolve(null);
+  var ch=tr.ch||1,rate=48000,ecfg={codec:'mp4a.40.2',sampleRate:rate,numberOfChannels:ch,bitrate:ch>1?160000:128000};
+  return AudioEncoder.isConfigSupported(ecfg).then(function(r){if(!r||!r.supported)return null;
+    return new Promise(function(done,fail){var out=[],asc=null,err=null;
+      var enc=new AudioEncoder({output:function(c,meta){if(meta&&meta.decoderConfig&&meta.decoderConfig.description)asc=new Uint8Array(meta.decoderConfig.description.slice?meta.decoderConfig.description.slice(0):meta.decoderConfig.description.buffer);var b=new Uint8Array(c.byteLength);c.copyTo(b);out.push({data:b,dur:1024,sync:true,ct:0});},error:function(e){err=e;}});
+      enc.configure(ecfg);
+      var dcfg={codec:'opus',sampleRate:rate,numberOfChannels:ch};
+      if(tr.dops&&tr.dops.length>=11){var o=tr.dops,h=new Uint8Array(19),w=new DataView(h.buffer),od=new DataView(o.buffer,o.byteOffset,o.length);'OpusHead'.split('').forEach(function(x,i){h[i]=x.charCodeAt(0);});h[8]=1;h[9]=o[1];w.setUint16(10,od.getUint16(2),true);w.setUint32(12,od.getUint32(4),true);w.setInt16(16,od.getInt16(8),true);h[18]=o[10];dcfg.description=h;}
+      var dec=new AudioDecoder({output:function(a){try{enc.encode(a);}catch(e){err=e;}a.close();},error:function(e){err=e;}});
+      try{dec.configure(dcfg);}catch(e){delete dcfg.description;dec.configure(dcfg);}
+      var t=0;tr.s.forEach(function(s){dec.decode(new EncodedAudioChunk({type:'key',timestamp:Math.round(t*1e6/tr.ts),data:P.d.subarray(s.off,s.off+s.size)}));t+=s.dur||960;});
+      dec.flush().then(function(){return enc.flush();}).then(function(){try{dec.close();enc.close();}catch(e){}
+        if(err||!out.length){fail(err||new Error('no sound'));return;}
+        if(!asc){var fi=[96000,88200,64000,48000,44100,32000,24000,22050,16000,12000,11025,8000].indexOf(rate);asc=new Uint8Array([(2<<3)|(fi>>1),((fi&1)<<7)|(ch<<3)]);}
+        done({samples:out,asc:asc,ch:ch,rate:rate});}).catch(fail);});});}
+function fixVideo(buf){
+  var P=null;try{P=mp4Parse(buf);}catch(e){return Promise.reject(e);}
+  if(!P||!P.tracks.length)return Promise.resolve(null);
+  var opus=P.tracks.filter(function(t){return t.codec==='Opus';})[0];
+  if(!P.moofs.length&&!opus)return Promise.resolve(null);
+  if(P.tracks.some(function(t){return !t.s.length;}))return Promise.resolve(null);
+  var conv=opus?opusToAac(P,opus).catch(function(){return null;}):Promise.resolve(null);
+  return conv.then(function(aac){return {blob:mp4Write(P,opus,aac),noSound:!!(opus&&!aac)};});}
+function mp4Write(P,opus,aac){
+  var d=P.d,u32=P.u32,boxes=P.boxes,kid=P.kid;
   function bx(t,parts){var n=8;parts.forEach(function(p){n+=p.length;});var o=new Uint8Array(n),w=new DataView(o.buffer);w.setUint32(0,n);for(var i=0;i<4;i++)o[4+i]=t.charCodeAt(i);var k=8;parts.forEach(function(p){o.set(p,k);k+=p.length;});return o;}
   function ints(a){var o=new Uint8Array(a.length*4),w=new DataView(o.buffer);a.forEach(function(x,i){w.setUint32(i*4,x>>>0);});return o;}
-  function raw(b){return d.subarray(b.s,b.e);}
-  function copyBox(b){return new Uint8Array(raw(b));}
-  // the new file: ftyp, moov, then all the pieces' data in the same order
-  var order=all.slice().sort(function(a,b){return a.off-b.off;}),dataLen=0;order.forEach(function(s){dataLen+=s.size;});
-  var ftypB=ftyp?copyBox(ftyp):bx('ftyp',[new Uint8Array([105,115,111,109,0,0,2,0,105,115,111,109,105,115,111,50,97,118,99,49,109,112,52,49])]);
-  var mvhd=kid(moov,'mvhd'),mts=u32(mvhd.b+(d[mvhd.b]?20:12));
-  function build(mdatStart){
-    var rel=0;order.forEach(function(s){s.no=mdatStart+8+rel;rel+=s.size;});
+  function copyBox(b){return new Uint8Array(d.subarray(b.s,b.e));}
+  function desc(tag,body){return [tag,body.length].concat(Array.prototype.slice.call(body));}
+  // the tracks to write: the picture as it is; Opus sound → AAC, or left out when this phone can't convert it
+  var W=[];P.tracks.forEach(function(tr){
+    if(tr===opus){if(!aac)return;
+      var dsi=desc(5,aac.asc),dcd=desc(4,[0x40,0x15,0,0,0,0,2,0x71,0,0,2,0x71,0].concat(dsi)),sl=desc(6,[2]);
+      var es=desc(3,[0,0,0].concat(dcd).concat(sl)),esds=bx('esds',[new Uint8Array([0,0,0,0].concat(es))]);
+      var ent=new Uint8Array(28),ew=new DataView(ent.buffer);ew.setUint16(6,1);ew.setUint16(16,aac.ch);ew.setUint16(18,16);ew.setUint32(24,aac.rate*65536);
+      W.push({tr:tr,ts:aac.rate,stsd:bx('stsd',[ints([0,1]),bx('mp4a',[ent,esds])]),S:aac.samples});}
+    else W.push({tr:tr,ts:tr.ts,stsd:copyBox(tr.stsd),S:tr.s});});
+  // place the samples by time, so picture and sound sit together in the file
+  var all=[];W.forEach(function(w){var t=0;for(var i=0;i<w.S.length;i++){var s=w.S[i];if(!s.dur&&i>0)s.dur=w.S[i-1].dur;s.t=t/w.ts;t+=s.dur;all.push(s);}w.tot=t;});
+  all.sort(function(a,b){return a.t-b.t;});
+  var dataLen=0;all.forEach(function(s){dataLen+=s.data?s.data.length:s.size;});
+  var ftypB=P.ftyp?copyBox(P.ftyp):bx('ftyp',[new Uint8Array([105,115,111,109,0,0,2,0,105,115,111,109,105,115,111,50,97,118,99,49,109,112,52,49])]);
+  var mvhd=kid(P.moov,'mvhd'),mts=u32(mvhd.b+(d[mvhd.b]?20:12));
+  function build(start){
+    var rel=0;all.forEach(function(s){s.no=start+8+rel;rel+=s.data?s.data.length:s.size;});
     var maxDur=0,trakOut=[];
-    traks.forEach(function(tk){var th=kid(tk,'tkhd'),v=d[th.b],id=u32(th.b+(v?20:12)),tr=T[id],S=tr.s;
-      var mdia=kid(tk,'mdia'),mdhd=kid(mdia,'mdhd'),mv=d[mdhd.b],tts=u32(mdhd.b+(mv?20:12)),hdlr=kid(mdia,'hdlr'),minf=kid(mdia,'minf'),stbl=kid(minf,'stbl'),stsd=kid(stbl,'stsd');
-      // the last piece may say 0 length: use the one before it
-      for(var i=0;i<S.length;i++)if(!S[i].dur&&i>0)S[i].dur=S[i-1].dur;
-      var tot=0;S.forEach(function(s){tot+=s.dur;});
+    W.forEach(function(w){var tk=w.tr.trak,S=w.S,th=kid(tk,'tkhd'),v=d[th.b],mdia=kid(tk,'mdia'),mdhd=kid(mdia,'mdhd'),mv=d[mdhd.b],minf=kid(mdia,'minf'),tot=w.tot;
       var stts=[],c=null;S.forEach(function(s){if(c&&c[1]===s.dur)c[0]++;else{c=[1,s.dur];stts.push(c);}});
       var hasCt=S.some(function(s){return s.ct;}),ctts=[];if(hasCt){c=null;S.forEach(function(s){if(c&&c[1]===s.ct)c[0]++;else{c=[1,s.ct];ctts.push(c);}});}
       var nonSync=S.some(function(s){return !s.sync;}),stss=[];if(nonSync)S.forEach(function(s,i){if(s.sync)stss.push(i+1);});
-      var parts=[ints([0,stts.length].concat([].concat.apply([],stts))),],
-          boxesOut=[copyBox(stsd),bx('stts',parts)];
-      if(hasCt){var cv=ctts.some(function(x){return x[1]<0;});var cb=ints([0,ctts.length].concat([].concat.apply([],ctts)));if(cv)cb[0]=1;boxesOut.push(bx('ctts',[cb]));}
-      if(nonSync)boxesOut.push(bx('stss',[ints([0,stss.length].concat(stss))]));
-      boxesOut.push(bx('stsc',[ints([0,1,1,1,1])]));
-      boxesOut.push(bx('stsz',[ints([0,0,S.length].concat(S.map(function(s){return s.size;})))]));
-      boxesOut.push(bx('stco',[ints([0,S.length].concat(S.map(function(s){return s.no;})))]));
-      var newStbl=bx('stbl',boxesOut);
-      var minfKids=boxes(minf.b,minf.e).map(function(b){return b.t==='stbl'?newStbl:copyBox(b);});
-      var mdhdC=copyBox(mdhd),w=new DataView(mdhdC.buffer);if(mv){w.setUint32(32,Math.floor(tot/4294967296));w.setUint32(36,tot>>>0);}else w.setUint32(24,tot>>>0);
+      var bo=[w.stsd,bx('stts',[ints([0,stts.length].concat([].concat.apply([],stts)))])];
+      if(hasCt){var cb=ints([0,ctts.length].concat([].concat.apply([],ctts)));if(ctts.some(function(x){return x[1]<0;}))cb[0]=1;bo.push(bx('ctts',[cb]));}
+      if(nonSync)bo.push(bx('stss',[ints([0,stss.length].concat(stss))]));
+      bo.push(bx('stsc',[ints([0,1,1,1,1])]));
+      bo.push(bx('stsz',[ints([0,0,S.length].concat(S.map(function(s){return s.data?s.data.length:s.size;})))]));
+      bo.push(bx('stco',[ints([0,S.length].concat(S.map(function(s){return s.no;})))]));
+      var newStbl=bx('stbl',bo),minfKids=boxes(minf.b,minf.e).map(function(b){return b.t==='stbl'?newStbl:copyBox(b);});
+      var mdhdC=copyBox(mdhd),mw=new DataView(mdhdC.buffer);if(mv){mw.setUint32(28,w.ts);mw.setUint32(32,Math.floor(tot/4294967296));mw.setUint32(36,tot>>>0);}else{mw.setUint32(20,w.ts);mw.setUint32(24,tot>>>0);}
       var newMdia=bx('mdia',boxes(mdia.b,mdia.e).map(function(b){return b.t==='mdhd'?mdhdC:b.t==='minf'?bx('minf',minfKids):copyBox(b);}));
-      var md=Math.round(tot*mts/(tts||1));if(md>maxDur)maxDur=md;
-      var thC=copyBox(th),w2=new DataView(thC.buffer);if(v){w2.setUint32(36,Math.floor(md/4294967296));w2.setUint32(40,md>>>0);}else w2.setUint32(28,md>>>0);
+      var md=Math.round(tot*mts/(w.ts||1));if(md>maxDur)maxDur=md;
+      var thC=copyBox(th),tw=new DataView(thC.buffer);if(v){tw.setUint32(36,Math.floor(md/4294967296));tw.setUint32(40,md>>>0);}else tw.setUint32(28,md>>>0);
       trakOut.push(bx('trak',boxes(tk.b,tk.e).filter(function(b){return b.t!=='edts';}).map(function(b){return b.t==='tkhd'?thC:b.t==='mdia'?newMdia:copyBox(b);})));});
-    var mvC=copyBox(mvhd),w3=new DataView(mvC.buffer);if(d[mvhd.b]){w3.setUint32(32,Math.floor(maxDur/4294967296));w3.setUint32(36,maxDur>>>0);}else w3.setUint32(24,maxDur>>>0);
+    var mvC=copyBox(mvhd),vw=new DataView(mvC.buffer);if(d[mvhd.b]){vw.setUint32(32,Math.floor(maxDur/4294967296));vw.setUint32(36,maxDur>>>0);}else vw.setUint32(24,maxDur>>>0);
     return bx('moov',[mvC].concat(trakOut));}
-  var mv1=build(0),start=ftypB.length+mv1.length,moovB=build(start); // same size the second time, now with the right places
+  var m1=build(0),moovB=build(ftypB.length+m1.length);
   var hdr=new Uint8Array(8);new DataView(hdr.buffer).setUint32(0,dataLen+8);hdr.set([109,100,97,116],4);
-  var out=[ftypB,moovB,hdr];order.forEach(function(s){out.push(d.subarray(s.off,s.off+s.size));});
+  var out=[ftypB,moovB,hdr];all.forEach(function(s){out.push(s.data||d.subarray(s.off,s.off+s.size));});
   return new Blob(out,{type:'video/mp4'});}
 var VB_SH='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg>';
 // the video as a normal MP4 file, made once per video and kept, so Share opens right away
 var VFIX={};
 function vFile(url,name){if(!url)return Promise.reject(new Error('not loaded'));if(VFIX[url])return VFIX[url].p;
-  var o={};o.p=fetch(url).then(function(r){return r.arrayBuffer();}).then(function(ab){var b=null;try{b=fixMp4(ab);}catch(e){logErr('fixMp4: '+String(e&&e.message||e),'');}
-    o.f=new File([b||ab],name,{type:'video/mp4'});return o.f;});o.p.catch(function(){delete VFIX[url];});VFIX[url]=o;return o.p;}
+  var o={};o.p=fetch(url).then(function(r){return r.arrayBuffer();}).then(function(ab){return fixVideo(ab).catch(function(e){logErr('fixVideo: '+String(e&&e.message||e),'');return null;}).then(function(r){
+    o.f=new File([r?r.blob:ab],name,{type:'video/mp4'});o.f._noSound=!!(r&&r.noSound);if(o.f._noSound)logErr('fixVideo: no AAC encoder on this phone – saved without sound','');return o.f;});});o.p.catch(function(){delete VFIX[url];});VFIX[url]=o;return o.p;}
 function vShare(url,name){if(!url){vBubble(T('Wait until it is loaded'));return;}
   function go(f){if(!(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]}))){vBubble('❗ '+T('This phone can not share it from here'),1);return;}
+    if(f._noSound)vBubble(T('This phone could not change the sound – the video goes without sound'),1);
     navigator.share({files:[f]}).catch(function(e){if(e&&e.name==='NotAllowedError')vBubble(T('Ready – tap share again'));});}
   var o=VFIX[url];if(o&&o.f){go(o.f);return;}
   vBubble(T('Getting it ready…'));vFile(url,name).then(go).catch(function(){vBubble('❗ '+T('Could not share it'),1);});}
@@ -3986,7 +4032,7 @@ function vSave(url,name,type){if(!url){vBubble(T('Wait until it is loaded'));ret
   VSAVE_AT[sk]=Date.now();vBubble('⬇ '+T('Downloading…'));
   (/^video/.test(type)?vFile(url,name):fetch(url).then(function(r){return r.blob();}).then(function(bl){return new File([bl],name,{type:bl.type||type});})).then(function(f){var bl=f;
     if(/iPhone|iPad/.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[f]}))return navigator.share({files:[f]}).then(function(){}).catch(function(){var o=document.querySelector('.vbubble');if(o)o.remove();});
-    var u=URL.createObjectURL(bl),a=el('a',{href:u,download:name,style:'display:none'});document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u);},1500);}).catch(function(){delete VSAVE_AT[sk];vBubble('❗ '+T('Could not save it'),1);});}
+    var u=URL.createObjectURL(bl),a=el('a',{href:u,download:name,style:'display:none'});document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(u);},1500);setTimeout(function(){vBubble(f._noSound?T('Saved – this phone could not change the sound, so it has no sound'):'✓ '+T('Saved – in your Gallery under Download'),f._noSound);},900);}).catch(function(){delete VSAVE_AT[sk];vBubble('❗ '+T('Could not save it'),1);});}
 function playVideo(it){
   var box=el('div',{class:'vvid'}),bar=el('div',{class:'pbar'},el('div',{class:'pfill'}));
   var vw=openViewer(box);vw.classList.add('vfull','vhold');
@@ -4002,8 +4048,8 @@ function playVideo(it){
     var BK=VB_BK,DL=VB_DL;
     var who=it.by?(it.by===S.me?T('You'):nameOf(it.by)):'',when=it.at?(dayLabelOf(it.at)+', '+clockOf(it.at)):'';
     var tsk=it.task&&allT().filter(function(t){return t.id===it.task;})[0];
-    function dl(e){e.stopPropagation();vSave(S.vids[it.id],'SAM video '+(it.at||'').slice(0,10)+'.mp4','video/mp4');}
-    var vname='SAM video '+(it.at||'').slice(0,10)+'.mp4';function sh(e){e.stopPropagation();vShare(S.vids[it.id],vname);}
+    function dl(e){e.stopPropagation();vSave(S.vids[it.id],vName(it.at),'video/mp4');}
+    var vname=vName(it.at);function sh(e){e.stopPropagation();vShare(S.vids[it.id],vname);}
     if(S.vids[it.id])setTimeout(function(){vFile(S.vids[it.id],vname).catch(function(){});},400);
     var top=el('div',{class:'vtop'},el('button',{class:'vtb','aria-label':T('Back'),onclick:function(e){e.stopPropagation();closeViewer();queueHist();},html:BK}),
       el('div',{class:'vtn'},el('b',{text:who||T('Video')}),el('span',{text:when})),
@@ -4016,7 +4062,7 @@ function playVideo(it){
   if(S.vids[it.id]){box.appendChild(vPlayer(S.vids[it.id],it));return;}
   var ring=el('div',{class:'vring'},el('span',{class:'vrpct',text:''}));box.appendChild(el('div',{class:'vpre'},VTH[it.id]?el('img',{src:VTH[it.id],alt:''}):null,ring));box.appendChild(bar);bar.style.display='none';
   getMedia(it.id,function(got,total){var pc=Math.round(got*100/total);bar.firstChild.style.width=pc+'%';ring.style.setProperty('--p',pc);ring.firstChild.textContent=pc+'%';},'video/mp4').then(function(url){
-    if(!document.getElementById('viewer'))return;box.innerHTML='';box.appendChild(vPlayer(url,it));setTimeout(function(){vFile(url,'SAM video '+(it.at||'').slice(0,10)+'.mp4').catch(function(){});},400);})
+    if(!document.getElementById('viewer'))return;box.innerHTML='';box.appendChild(vPlayer(url,it));setTimeout(function(){vFile(url,vName(it.at)).catch(function(){});},400);})
   .catch(function(err){box.innerHTML='';box.appendChild(el('p',{text:T('Could not load the video.')}));logErr('Video play failed: '+String(err&&err.message||err),it.id);});
 }
 var photoTask=null;
